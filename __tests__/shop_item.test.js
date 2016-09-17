@@ -7,7 +7,7 @@
 import React from 'react';
 import ShopItem from  '../src/comps/shop_item';
 import ReactDOM from 'react-dom';
-import { shallow } from 'enzyme';
+import sinon from 'sinon';
 import { mount } from 'enzyme';
 
 describe('<ShopItem />', () => {
@@ -20,5 +20,12 @@ describe('<ShopItem />', () => {
         const shopItem = mount(<ShopItem displayImage="imageurl"/>);
         expect(shopItem.props().displayImage).toEqual("imageurl");
     });
+
+    // it('should trigger click events', () => {
+    //     const onButtonClick = sinon.spy();
+    //     const wrapper = mount(<ShopItem onButtonClick={onButtonClick}/>);
+    //     wrapper.find('button').simulate('click');
+    //     expect(onButtonClick.calledOnce).toEqual(true);
+    // });
 });
 

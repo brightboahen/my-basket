@@ -14,9 +14,6 @@ import 'bootstrap/dist/css/bootstrap-theme.css';
  * */
 
 export default class ShopItem extends React.Component{
-    constructor(props){
-        super(props);
-    }
     _onMouseClick(){
 
         if(this.props.basketCallBack){
@@ -29,7 +26,7 @@ export default class ShopItem extends React.Component{
                 <Thumbnail src={this.props.displayImage}>
                     <h3>{this.props.displayLabel}</h3>
                     <p>{this.props.displayDesc}</p>
-                    <p>{this.props.displayPrice}</p>
+                    <p>{this.props.itemCurrency+ ' ' +this.props.displayPrice}</p>
                     <p>
                         <Button bsStyle="primary" onClick={this._onMouseClick.bind(this)}>Add to basket</Button>
                     </p>
@@ -45,5 +42,6 @@ ShopItem.propTypes = {
     displayLabel    : React.PropTypes.string,
     displayDesc     : React.PropTypes.string,
     dataInfo        : React.PropTypes.object,
-    basketCallBack  : React.PropTypes.func
+    basketCallBack  : React.PropTypes.func,
+    itemCurrency    : React.PropTypes.string
 };

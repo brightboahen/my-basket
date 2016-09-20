@@ -32,6 +32,10 @@
 .App-basket-item{
   margin-bottom: 5px;
 }
+.App-jumbotron{
+  margin: 60px;
+  text-align: center;
+}
 
 @keyframes App-logo-spin {
   from { transform: rotate(0deg); }

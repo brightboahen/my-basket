@@ -16,7 +16,8 @@ class App extends Component {
       this.state = {
           basket : [],
           currency : CURRENCY[0],
-          rateName : NAMES[0]
+          rateName : NAMES[0],
+          rate : 1
       }
   }
 
@@ -24,7 +25,8 @@ class App extends Component {
       http(`http://www.apilayer.net/api/live`)
           .get({access_key: '25a025ec8605dece53768bf646ad1e73',currencies: ['EUR', 'GBP'],source : 'USD'})
           .then((res) => {
-              console.log(res);
+              let currencyObj = JSON.parse(res);
+              this.currencyQuotes = currencyObj.quotes;
           });
   }
 
@@ -38,6 +40,15 @@ class App extends Component {
           this.setState({basket:currentBasket});
       }
   }
+
+  removeItemFromBasket(itemLabel){
+      let filteredBag = this.state.basket.filter( (item) => {
+          return item.label !== itemLabel
+      });
+
+      this.setState({ basket : filteredBag});
+  }
+
   renderShopItems(){
       const self = this;
       if(this.props.arrayOfItemsToDisplay && this.props.arrayOfItemsToDisplay.length >= 1){
@@ -47,7 +58,7 @@ class App extends Component {
                       <ShopItem itemCurrency={this.state.currency} displayImage={entry.imageURL}
                                 displayLabel={entry.label}
                                 displayDesc={entry.desc}
-                                displayPrice={entry.price}
+                                displayPrice={String((entry.price/this.state.rate).toFixed(2))}
                                 dataInfo={entry}
                                 basketCallBack={self.updateBasketData.bind(self)}
                       />
@@ -58,7 +69,22 @@ class App extends Component {
   }
 
   _onCurrencySelected(eventKey){
-      this.setState({currency:CURRENCY[eventKey], rateName:NAMES[eventKey]});
+      const quotes = this.currencyQuotes;
+      let currencyRate  = 0;
+      switch (eventKey){
+          case '0':
+              currencyRate = 1;
+              break;
+          case '1':
+              currencyRate = quotes["USDGBP"];
+              break;
+          case '2':
+              currencyRate = quotes["USDEUR"];
+              break;
+          default:
+              break;
+      }
+      this.setState({currency:CURRENCY[eventKey], rateName:NAMES[eventKey], rate : currencyRate});
   }
 
   render() {
@@ -78,12 +104,19 @@ class App extends Component {
                                 <MenuItem onSelect={this._onCurrencySelected.bind(this)} eventKey="2">Euro</MenuItem>
                         </SplitButton>
                     </span>
-                    <Checkout basketCurrency={this.state.currency} basketItems={this.state.basket} numOfItems={this.state.basket.length}/>
+                    <Checkout basketCurrency={this.state.currency}
+                              basketItems={this.state.basket}
+                              checkoutRate={this.state.rate}
+                              numOfItems={this.state.basket.length}
+                              removeBasketItemCallback={this.removeItemFromBasket.bind(this)}
+                    />
                 </Grid>
             </Navbar>
             <Jumbotron>
-                <h1>Welcome to our groceries shop!</h1>
-                <p>Where you can only buy 4 items. Click on the add to basket button to add an item to the basket</p>
+                <div className="App-jumbotron">
+                    <h1>Welcome to our groceries shop!</h1>
+                    <p>Where you can only buy 4 items. Click on the add to basket button to add an item to the basket</p>
+                </div>
             </Jumbotron>
             <Grid bsClass="container">
                 <Row className="show-grid">
@@ -91,15 +124,6 @@ class App extends Component {
                 </Row>
             </Grid>
         </div>
-      // <div className="App">
-      //   <div className="App-header">
-      //     <img src={logo} className="App-logo" alt="logo" />
-      //     <h2>Welcome to React</h2>
-      //   </div>
-      //   <p className="App-intro">
-      //     To get started, edit <code>src/App.js</code> and save to reload.
-      //   </p>
-      // </div>
     );
   }
 }

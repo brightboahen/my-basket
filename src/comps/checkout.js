@@ -17,45 +17,37 @@ export default class Checkout extends React.Component{
         super(props);
         this.state = { show : false, total : 0, itemCount : []};
         this.isRoot = true;
-        this.tTotal = 0;
         this.handleClick = evt => {
             if(this.isRoot){
                 this.setState({ target : evt.target, show : !this.state.show});
-                console.log('first');
             }
         };
     }
 
-    componentWillReceiveProps(){
-        console.log(this);
-        this.initItemInBasketSize();
+    componentWillReceiveProps(nextProps){
+        this.initItemInBasketSize(nextProps);
     }
 
-    initItemInBasketSize (){
-        this.setState({ itemCount : this.props.basketItems.map( item => ({label : item.label, amount: 1, price: item.price})) });
+    initItemInBasketSize (props){
+        this.setState({ itemCount : props.basketItems.map( item => ({label : item.label, amount: 1, price: item.price})) });
     }
 
     updateItemCount(itemObj, sign) {
         this.isRoot = false;
-        console.log(sign);
         let itemCount = this.state.itemCount.map((item) => {
             if (item.label === itemObj.label) {
                 if(sign === 'plus'){
                     let v = item.amount;
                     v += 1;
                     item.amount = v;
-                    console.log('v', v);
-                    console.log('item amount', item.amount);
                     return item;
                 }else{
-                    console.log('item amount', item.amount);
                     item.amount -= 1;
                     return item;
                 }
             }
             return item;
         });
-        console.log(itemCount);
         this.setState({ itemCount : itemCount });
         this._calculateTotalAmount();
     }
@@ -65,7 +57,7 @@ export default class Checkout extends React.Component{
             return this.props.basketItems.map((entry, index)  => {
                 return (
                     <div className="App-basket-item" key={index}>
-                        <BasketItem currency={this.props.basketCurrency} content={entry} itemAmount={this._findItemAmountInProps(entry)}>
+                        <BasketItem basketRate={this.props.checkoutRate} currency={this.props.basketCurrency} content={entry} itemAmount={this._findItemAmountInProps(entry)}>
                             <ButtonToolbar>
                                 <ButtonGroup>
                                     <Button onClick={this.updateItemCount.bind(this,entry,'minus')}>
@@ -73,6 +65,9 @@ export default class Checkout extends React.Component{
                                     </Button>
                                     <Button onClick={this.updateItemCount.bind(this,entry,'plus')}>
                                         <Glyphicon glyph="glyphicon glyphicon-plus"/>
+                                    </Button>
+                                    <Button onClick={this.callBackParentNodeToDeleteItemFromBasket.bind(this,entry.label)}>
+                                        <Glyphicon glyph="glyphicon glyphicon-trash"/>
                                     </Button>
                                 </ButtonGroup>
                             </ButtonToolbar>
@@ -83,6 +78,13 @@ export default class Checkout extends React.Component{
         }
     }
 
+    callBackParentNodeToDeleteItemFromBasket(label){
+        this.isRoot = false;
+        if(this.props.removeBasketItemCallback){
+            this.props.removeBasketItemCallback(label);
+        }
+    }
+
     _onHide(){
         this.isRoot = true;
         this.setState({show : !this.state.show});
@@ -90,7 +92,7 @@ export default class Checkout extends React.Component{
 
     _calculateTotalAmount(){
         return this.state.itemCount.reduce((prev, cur) => {
-            return (prev + cur.amount * cur.price);
+            return (prev + cur.amount * ((cur.price / this.props.checkoutRate).toFixed(2)));
         }, 0);
     }
 
@@ -129,5 +131,7 @@ export default class Checkout extends React.Component{
 Checkout.propTypes = {
     numOfItems : React.PropTypes.number,
     basketItems : React.PropTypes.array,
-    basketCurrency : React.PropTypes.string
+    basketCurrency : React.PropTypes.string,
+    checkoutRate : React.PropTypes.number,
+    removeBasketItemCallback : React.PropTypes.func
 };
